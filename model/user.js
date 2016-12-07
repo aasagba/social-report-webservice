@@ -2,40 +2,83 @@
 
 var async = require('async');
 var chalk = require('chalk');
+var Promise = require('bluebird');
+var createTwitterClient = require('../config/twitterclient');
+// create twitter cient
+var twitterClient = createTwitterClient();
 
 // User model
 module.exports = function (app, callback) {
-    var model = {
+    app.db.collection('user', function (err, collection) {
 
-        getAll: function (client, callback) {
+        var model = {
 
-            var users = [{
-                name: 'BSI_UK',
-                location: 'London, UK',
-                followers_count: '14029',
-                friends_count: '994',
-                favourites_count: '482',
-                statuses_count: '5080',
-                status: {
-                    created_at: 'Thu Dec 01 11:20:50 +0000 2016',
-                    text: '@elainecohen is talking about the key findings of the research commissioned as part of this project/event… https://t.co/rMzhaUnDHR'
+            collection: collection,
+
+            // run user lookup
+            runByClient: function (users, channel, callback) {
+                var channel = channel.toLowerCase();
+                var userInfo = [];
+                var user = "BSI";
+
+                switch (channel) {
+                    case "twitter":
+                        // get users, hardcode for now
+                        //var users = ['BSI_UK', 'BSI_France', 'BSI_AustraliaNZ', 'BSI_Brazil'];
+
+                        // perform user lookup
+                        userInfo = users.map(twitterClient.userLookup);
+                        break;
+                    case "facebook":
+
+                        break;
+                    case "linkedin":
+
+                        break;
+                    default:
+
                 }
-            }, {
-                name: 'BSI_France',
-                location: 'Paris, France',
-                followers_count: '3139',
-                friends_count: '774',
-                favourites_count: '90',
-                statuses_count: '495',
-                status: {
-                    created_at: 'Wed Nov 30 18:00:21 +0000 2016',
-                    text: 'RT BSI_UK: Mark Carolan espiongroup outlines why IT security managers should be worried about ICS in their Infrastructure Vía BSI_press'
-                }
-            }];
 
-            callback(null, users);
-        }
+                Promise.all(userInfo).then(function (userInfo) {
+                    // prepare result object needed
+                    var preparedResults = [];
+                    userInfo.forEach( function (user) {
+                        preparedResults.push({
+                         accountid: "",
+                         name: user.name,
+                         screenName: user.screen_name,
+                         channel: "twitter",
+                         location: user.location,
+                         description: user.description,
+                         followers_count: user.followers_count,
+                         friends_count: user.friends_count,
+                         favourites_count: user.favourites_count,
+                         statuses_count: user.statuses_count,
+                         latest_status_date: user.status.created_at,
+                         latest_status: user.status.text
+                         });
+                    });
+                    var results = Promise.all(preparedResults);
 
-    };
-    callback(null, model);
+                    //insert results into db
+                    // return success/failure message
+                    /*
+                     collection.insert()
+                     */
+
+                    results.then(function (data) {
+                        callback(null, data);
+                    });
+
+                });
+            },
+
+            // get user lookup
+            getByClient: function (users, callback) {
+
+            }
+
+        };
+        callback(null, model);
+    });
 }

@@ -2,6 +2,7 @@
 
 var async = require('async');
 var Hapi = require('hapi');
+var MongoClient = require('mongodb').MongoClient;
 
 module.exports = initApp;
 
@@ -17,8 +18,22 @@ function initApp (config, callback) {
     async.series([
 
         function (next) {
+            MongoClient.connect(config.database, {server: {auto_reconnect: false}}, function (err, db) {
+                app.db = db;
+                next(err);
+            });
+        },
+
+        function (next) {
             require('./model/user')(app, function (err, model) {
                 app.model.user = model;
+                next(err);
+            });
+        },
+
+        function (next) {
+            require('./model/users')(app, function (err, model) {
+                app.model.users = model;
                 next(err);
             });
         },
@@ -32,7 +47,7 @@ function initApp (config, callback) {
 
         function (next) {
             app.server.addRoutes(require('./route/users')(app));
-            /*app.server.addRoutes(require('./route/user')(app));*/
+            app.server.addRoutes(require('./route/user')(app));
             app.server.start(next);
         }
     ], function (err) {
