@@ -28,7 +28,7 @@ function twitterClient () {
         userLookup: function (user, done) {
             return new Promise(function (resolve, reject) {
                 // users.forEach(function (user) {
-                twitterUserLookup({screen_name: user.accountid}, function (user) {
+                twitterUserLookup({screen_name: user.accountid}, user._id, user.client, user.channel, function (user) {
                     resolve(user);
                 });
                 // });
@@ -89,11 +89,15 @@ function twitterClient () {
     };
 }
 
-function twitterUserLookup (options, done) {
+function twitterUserLookup (options, id, client, channel, done) {
     config.get('users/lookup', options, function (error, user, response) {
         if (!error) {
-            //console.log(JSON.stringify(user));
+
+            user[0].userid = id;
+            user[0].clientid = client;
+            user[0].channel = channel;
             user = user[0];
+            //console.log("users/lookup" + JSON.stringify(user));
             return done(user);
         } else {
             console.log("Error doing user lookup: " + error);

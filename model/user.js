@@ -3,51 +3,41 @@
 var async = require('async');
 var chalk = require('chalk');
 var Promise = require('bluebird');
-var createTwitterClient = require('../config/twitterclient');
-// create twitter cient
-var twitterClient = createTwitterClient();
+var socialClientHandler = require('../config/socialclient.js');
+var socialclient = socialClientHandler();
+var ObjectID = require('mongodb').ObjectID;
 
 // User model
 module.exports = function (app, callback) {
+
+
     app.db.collection('user', function (err, collection) {
 
         var model = {
 
             collection: collection,
 
-            // run user lookup
-            runByClient: function (users, channel, callback) {
-                var channel = channel.toLowerCase();
+            /*******************************************************************
+             RUN USER LOOKUP
+             *******************************************************************/
+            runByClient: function (users, callback) {
                 var userInfo = [];
                 var user = "BSI";
 
-                switch (channel) {
-                    case "twitter":
-                        // get users, hardcode for now
-                        //var users = ['BSI_UK', 'BSI_France', 'BSI_AustraliaNZ', 'BSI_Brazil'];
-
-                        // perform user lookup
-                        userInfo = users.map(twitterClient.userLookup);
-                        break;
-                    case "facebook":
-
-                        break;
-                    case "linkedin":
-
-                        break;
-                    default:
-
-                }
+                //userInfo = users.map(twitterClient.userLookup);
+                userInfo = users.map(socialclient.userLookup);
 
                 Promise.all(userInfo).then(function (userInfo) {
                     // prepare result object needed
-                    var preparedResults = [];
+                    var newResult = [];
                     userInfo.forEach( function (user) {
-                        preparedResults.push({
-                         accountid: "",
+                        newResult.push({
+                         account: user.userid, // foreign key for users collection
+                         client: user.clientid, // eg. BSI
                          name: user.name,
-                         screenName: user.screen_name,
-                         channel: "twitter",
+                         screen_name: user.screen_name,
+                         date: Date.now(),
+                         channel: user.channel,
                          location: user.location,
                          description: user.description,
                          followers_count: user.followers_count,
@@ -58,24 +48,65 @@ module.exports = function (app, callback) {
                          latest_status: user.status.text
                          });
                     });
-                    var results = Promise.all(preparedResults);
-
-                    //insert results into db
-                    // return success/failure message
-                    /*
-                     collection.insert()
-                     */
+                    var results = Promise.all(newResult);
 
                     results.then(function (data) {
-                        callback(null, data);
+                        // TODO insert results into db
+                        // return success/failure message
+
+                       collection.insert(data, function (err, result) {
+                          if (err) {
+                              return callback(err);
+                          }
+                           callback(null, result);
+                       });
+                       // callback(null, data);
                     });
 
                 });
             },
 
-            // get user lookup
-            getByClient: function (users, callback) {
+            // return user lookup results from DB
+            getByClient: function (client, callback) {
 
+                collection
+                    .find({client: client})
+                    .sort({follwers_count: -1})
+                    .toArray(function (err, results) {
+                       if (err) {
+                           return callback(err);
+                       }
+                        callback(null, results);
+                    });
+            },
+
+            // Default filter options
+            _defaultFilterOpts: function (opts) {
+                return {
+                    user: opts.user
+                };
+            },
+
+            getResultById: function (id, opts, callback) {
+                opts.user = id;
+
+                var filter = {
+                    account: opts.user
+                };
+
+                if (opts.user) {
+                    filter.account = new ObjectID(opts.user);
+                }
+
+                collection
+                    .find(filter)
+                    .sort({date: -1})
+                    .toArray(function (err, results) {
+                       if (err) {
+                           return callback(err);
+                       }
+                        callback(null, results);
+                    });
             }
 
         };

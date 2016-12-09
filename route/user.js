@@ -7,6 +7,10 @@ module.exports = function (app) {
     var model = app.model;
 
     return [
+
+        /*******************************************************************
+         WEB-SERVICE WELCOME MESSAGE
+         *******************************************************************/
         {
             method: 'GET',
             path: '/',
@@ -14,7 +18,13 @@ module.exports = function (app) {
                 req.reply("Welcome to the LFI Social-Report-Webservice").code(200);
             }
         },
-        // Get Posts for user
+
+        /*******************************************************************
+         TIMELINE STATUSES SERVICE
+
+         Get Posts for user
+         eg http://127.0.0.1:8000/
+         *******************************************************************/
         {
             method: 'GET',
             path: '/user/account/{account}',
@@ -30,25 +40,32 @@ module.exports = function (app) {
         },
 
         {
-            // eg http://127.0.0.1:8000/user/run?client=BSI&channel=twitter
+        /*******************************************************************
+            RUN USER LOOKUP SERVICE
+
+            Will run user lookup service and store results in DB
+            eg http://127.0.0.1:8000/user/run?client=BSI
+         *******************************************************************/
+
             method: 'GET',
             path: '/user/run',
             handler: function (req) {
                 var client = req.query.client;
-                var channel = req.query.channel;
+                //var channel = req.query.channel;
 
                 // put channel as field in users collection and remove argument below
 
-                model.users.getAll(client, channel, function (err, users) {
+                model.users.getAll(client, function (err, users) {
                     console.log(client);
                     if (err) {
                         return req.reply().code(500);
                     } else {
-                        model.user.runByClient(users, channel, function (err, results) {
+                        model.user.runByClient(users, function (err, results) {
                             if (err) {
                                 return req.reply().code(500);
                             } else {
-                                req.reply(results).code(200);
+                                req.reply("Successfully Ran Lookup for " + client + " accounts.").code(200);
+                                //req.reply().code(202);
                             }
                         });
                     }
@@ -58,13 +75,27 @@ module.exports = function (app) {
         },
 
         {
-            // eg. http://127.0.0.1:8000/user/results?client=BSI&channel=twitter
+        /*******************************************************************
+            RETURN USER LOOKUP RESULTS
+
+            Will return user lookup results from DB
+            eg. http://127.0.0.1:8000/user/results?client=BSI
+
+         *******************************************************************/
             method: 'GET',
             path: '/user/results',
             handler: function (req) {
+                var client = req.query.client;
+                console.log("In /user/results");
+                model.user.getByClient(client, function (err, results) {
+                   if (err) {
+                       return req.reply().code(500);
+                   }
+                    req.reply(results).code(200);
+                });
 
                 // hardocoded results
-                var results = [
+                /*var results = [
 
                     {
                         "accountid": "",
@@ -125,8 +156,30 @@ module.exports = function (app) {
 
                 ];
 
-                req.reply(results).code(200);
+                req.reply(results).code(200);*/
             }
+        },
+
+        {
+        /*******************************************************************
+         RETURN USER LOOKUP RESULTS
+
+         Will return user lookup results from DB
+         eg. http://127.0.0.1:8000/user/results?client=BSI
+
+         *******************************************************************/
+        method: 'GET',
+            path: '/user/{id}/results',
+            handler: function (req) {
+                model.user.getResultById(req.params.id, req.query, function (err, results) {
+                   if (err || !results) {
+                       return req.reply().code(500);
+                   }
+                    req.reply(results).code(200);
+                });
+
+            }
+
         }
     ];
 

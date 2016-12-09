@@ -8,14 +8,19 @@ module.exports = function (app) {
 
     return [
         {
-            // Get all users
-            // eg. http://127.0.0.1:8000/users/accounts?client=BSI&channel=twitter
+
+        /*******************************************************************
+         CLIENT SOCIAL MEDIA ACCOUNTS
+
+         returns array of client account(s)
+         eg. http://127.0.0.1:8000/users/accounts?client=BSI&channel=twitter
+         *******************************************************************/
             method: 'GET',
             path: '/users/accounts',
             handler: function (req) {
-                console.log("Request:" + JSON.stringify(req.query));
-                model.users.getAll(req.query.client, req.query.channel, function (err, users) {
-                    console.log(req.query.client);
+                //console.log("Request:" + JSON.stringify(req.query));
+                model.users.getAll(req.query.client, function (err, users) {
+                    //console.log(req.query.client);
                     if (err) {
                         return req.reply().code(500);
                     } else {
@@ -26,12 +31,10 @@ module.exports = function (app) {
         },
 
 
-        /* TODO ROUTES */
+        // TODO ROUTES POST /users - get social users and store in database
 
-        // POST /users - get social users and store in database
+        // TODO POST /user - get social user and store in database
 
-        // POST /user - get social user and store in database
-
-        // POST gets post timeline for user account and store in database
+        // TODO gets post timeline for user account and store in database
     ];
 };
