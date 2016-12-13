@@ -46,6 +46,13 @@ function initApp (config, callback) {
         },
 
         function (next) {
+            require('./model/followers')(app, function (err, model) {
+                app.model.followers = model;
+                next(err);
+            });
+        },
+
+        function (next) {
             app.server.addRoutes(require('./route/users')(app));
             app.server.addRoutes(require('./route/user')(app));
             app.server.start(next);

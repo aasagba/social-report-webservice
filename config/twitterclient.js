@@ -13,6 +13,7 @@ var globalaction = "";
 var options = {};
 var action = "";
 
+
 var config = new twitter({
     consumer_key: 'Kvz4iyNlnaSOGNieotK4IOUbT',
     consumer_secret: 'SvvFcL7Fvy7rLulNt3dbzbKVxHTeeHo9oovmqCpLoOVItOBaDf',
@@ -25,6 +26,37 @@ var userInfo = [];
 function twitterClient () {
 
     return {
+        // RETURN TEST FOLLOWERS
+        // var followers = require('../data/followers.json');
+        // resolve(followers);
+
+        getFollowers: function (user, done) {
+            var results = [];
+
+            return new Promise(function (resolve, reject) {
+                config.get('followers/ids', {screen_name: user}, function getData(error, userids, response) {
+                    if (!error) {
+                        results = userids.ids;
+                        console.log(JSON.stringify(results));
+
+                        // Todo Loop ids and do user lookup and populate followers array
+                        var users = [];
+
+                        users = followerLookup(results);
+
+                        var processUsers = Promise.all(users);
+
+                        Promise.all(processUsers).then(function (data) {
+                            resolve(data);
+                        });
+
+                    } else {
+                        console.log("Error doing followers lookup: " + JSON.stringify(error));
+                    }
+                });
+            });
+        },
+
         userLookup: function (user, done) {
             return new Promise(function (resolve, reject) {
                 // users.forEach(function (user) {
@@ -100,7 +132,7 @@ function twitterUserLookup (options, id, client, channel, done) {
             //console.log("users/lookup" + JSON.stringify(user));
             return done(user);
         } else {
-            console.log("Error doing user lookup: " + error);
+            console.log("Error doing user lookup: " + JSON.stringify(error) + " id: " + id);
         }
     });
 }
@@ -134,4 +166,70 @@ function getMaxHistory (data) {
         twitterStatusesAsync(action, options).then(getMaxHistory);
     }
 
+}
+
+function userLook (results, done) {
+    console.log("In userLook");
+    console.log("Results length: " + results.length);
+    var users = [];
+
+    return new Promise(function (resolve, reject) {
+
+        var i, j, temporary, chunk = 99;
+
+        for (i = 0; i < results.lenth; i += chunk) {
+            temporary = results.slice(i, i + chunk).toString();
+            console.log("Temporary: " + temporary);
+
+            config.get('users/lookup', {user_id: temporary}, function (error, user, response) {
+                if (!error) {
+                    users.push(user);
+                    console.log(user.name);
+                    console.log("response" + response);
+                    //return done(user);
+                } else {
+                    console.log("Error doing user lookup: " + JSON.stringify(error) + " id: " + id);
+                }
+            });
+        }
+        resolve(users);
+    });
+    done(null,users);
+}
+
+
+function followerLookup (results) {
+    console.log("In userLookupTest");
+    console.log("Results length: " + results.length);
+
+    var i = 0, j, temporary, chunk = 99, users = [];
+    var action = 'users/lookup';
+    temporary = results.slice(i, i + chunk).toString();
+    var options = {user_id: temporary};
+
+    return new Promise(function (resolve, reject) {
+        function TwitterLookupAsync(action, options) {
+
+            config.get('users/lookup', options, function (error, user, response) {
+                //if (!error) {
+                    users = users.concat(user);
+                    //console.log(user);
+                    //console.log("response" + JSON.stringify(response));
+
+                    // if more ids
+                    if (i < results.length) {
+                        i += chunk;
+                        temporary = results.slice(i, i + chunk).toString();
+                        TwitterLookupAsync(action, {user_id: temporary});
+                    } else {
+                        resolve(users)
+                    }
+                    //return done(user);
+                /*} else {
+                    console.log("Error doing user lookup: " + JSON.stringify(error));
+                }*/
+            });
+        }
+        TwitterLookupAsync(action, options);
+    });
 }

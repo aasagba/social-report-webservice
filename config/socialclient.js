@@ -38,6 +38,15 @@ function socialClient () {
                 resolve(result);
 
             });
+        },
+
+        getFollowers: function (user, done) {
+            var result = null;
+
+            return new Promise(function (resolve, reject) {
+                result = twitterClient.getFollowers(user);
+                resolve(result);
+            });
         }
     }
 }

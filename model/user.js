@@ -9,7 +9,7 @@ var ObjectID = require('mongodb').ObjectID;
 
 // User model
 module.exports = function (app, callback) {
-
+    var globalmodel = app.model;
 
     app.db.collection('user', function (err, collection) {
 
@@ -30,6 +30,8 @@ module.exports = function (app, callback) {
                 Promise.all(userInfo).then(function (userInfo) {
                     // prepare result object needed
                     var newResult = [];
+                    //var followers = [];
+
                     userInfo.forEach( function (user) {
                         newResult.push({
                          account: user.userid, // foreign key for users collection
@@ -58,10 +60,29 @@ module.exports = function (app, callback) {
                           if (err) {
                               return callback(err);
                           }
+
+                           console.log("USers: " + JSON.stringify(users));
+                           console.log("Length: " + users.length);
+
+                           users.forEach (function (user) {
+                               // Followers Lookup
+                               globalmodel.followers.processFollowers(user._id, user.accountid, function (err, results) {
+                                  if (err) {
+                                      return req.reply().code(500);
+                                  }
+                               });
+                           });
+
+
                            callback(null, result);
+
                        });
+
+
+
                        // callback(null, data);
                     });
+
 
                 });
             },
@@ -71,7 +92,7 @@ module.exports = function (app, callback) {
 
                 collection
                     .find({client: client})
-                    .sort({follwers_count: -1})
+                    .sort({followers_count: -1})
                     .toArray(function (err, results) {
                        if (err) {
                            return callback(err);
