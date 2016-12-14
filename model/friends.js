@@ -7,15 +7,14 @@ var socialClientHandler = require('../config/socialclient.js');
 var socialclient = socialClientHandler();
 var ObjectID = require('mongodb').ObjectID;
 
-// User model
 module.exports = function (app, callback) {
-    app.db.collection('followers', function (err, collection) {
+    app.db.collection('friends', function (err, collection) {
+
         var model = {
 
-            processFollowers: function (account, accountName, callback) {
-                var action = 'followers/ids';
+            processFriends: function (account, accountName, callback) {
+                var action = 'friends/ids';
                 var result = socialclient.getFollowers(action,accountName);
-                //console.log("Account: " + JSON.stringify(account));
 
                 Promise.all(result).then(function (result) {
                     var processResults = [];
@@ -39,28 +38,34 @@ module.exports = function (app, callback) {
                             }
                             callback(null, result);
                         });
+
                         //callback(null, data);
                     });
 
 
                 });
+
             },
 
-            getFollowers: function (account, callback) {
+            getFriends: function (account, callback) {
+                console.log("In model friends getFriends");
                 var filter = {};
                 filter.account = new ObjectID(account);
 
                 collection
                     .find(filter)
-                   // .sort({followers_count: -1})
+                    // .sort({followers_count: -1})
                     .toArray(function (err, results) {
                         if (err) {
                             return callback(err);
                         }
+                        console.log("Results: " + results);
                         callback(null, results);
                     });
             }
         };
         callback(null, model);
+
+
     });
 }

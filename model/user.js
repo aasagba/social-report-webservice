@@ -61,7 +61,7 @@ module.exports = function (app, callback) {
                               return callback(err);
                           }
 
-                           console.log("USers: " + JSON.stringify(users));
+                           console.log("Users: " + JSON.stringify(users));
                            console.log("Length: " + users.length);
 
                            users.forEach (function (user) {
@@ -70,6 +70,12 @@ module.exports = function (app, callback) {
                                   if (err) {
                                       return req.reply().code(500);
                                   }
+                               });
+
+                               globalmodel.friends.processFriends(user._id, user.accountid, function (err, results) {
+                                   if (err) {
+                                       return req.reply().code(500);
+                                   }
                                });
                            });
 

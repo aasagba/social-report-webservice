@@ -19,6 +19,36 @@ module.exports = function (app) {
             }
         },
 
+        {
+            method: 'GET',
+            path: '/run/friends',
+            handler: function (req) {
+                //console.log("req.query.account: " + req.query.account);
+                model.friends.processFriends(req.query.account, req.query.accountname, function (err, friends) {
+                    if (err) {
+                        return req.reply().code(500);
+                    } else {
+                        req.reply(friends).code(200);
+                    }
+                });
+            }
+        },
+
+        {
+            method: 'GET',
+            path: '/friends',
+            handler: function (req) {
+                console.log("req.query.account: " + req.query.account);
+                model.friends.getFriends(req.query.account, function (err, friends) {
+                    if (err) {
+                        return req.reply().code(500);
+                    } else {
+                        req.reply(friends).code(200);
+                    }
+                });
+            }
+        },
+
         /*******************************************************************
          GET FOLLOWERS FROM DB BY ACCOUNT
 

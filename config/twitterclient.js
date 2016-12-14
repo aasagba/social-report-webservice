@@ -30,11 +30,16 @@ function twitterClient () {
         // var followers = require('../data/followers.json');
         // resolve(followers);
 
-        getFollowers: function (user, done) {
+        getFollowers: function (action, user, done) {
             var results = [];
 
             return new Promise(function (resolve, reject) {
-                config.get('followers/ids', {screen_name: user}, function getData(error, userids, response) {
+
+                var options = {
+                    screen_name: user
+                };
+
+                config.get(action, options, function getData(error, userids, response) {
                     if (!error) {
                         results = userids.ids;
                         console.log(JSON.stringify(results));
@@ -51,7 +56,7 @@ function twitterClient () {
                         });
 
                     } else {
-                        console.log("Error doing followers lookup: " + JSON.stringify(error));
+                        console.log("Error doing followers lookup: " + error);
                     }
                 });
             });

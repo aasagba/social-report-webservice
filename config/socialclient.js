@@ -40,11 +40,11 @@ function socialClient () {
             });
         },
 
-        getFollowers: function (user, done) {
+        getFollowers: function (action, user, done) {
             var result = null;
 
             return new Promise(function (resolve, reject) {
-                result = twitterClient.getFollowers(user);
+                result = twitterClient.getFollowers(action, user);
                 resolve(result);
             });
         }
