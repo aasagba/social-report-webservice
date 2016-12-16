@@ -71,11 +71,13 @@ function twitterClient () {
                 // });
             });
         },
-        getPostTimeline: function (newaction, newoptions) {
+        getPostTimeline: function (channel, newaction, newoptions) {
             action = newaction;
             options = newoptions;
             results = [];
             count = 0;
+
+            console.log("Options in getPostTimeline: " + JSON.stringify(options));
 
             return new Promise(function (resolve, reject) {
                 function twitterStatusesAsync (action, options) {
@@ -89,7 +91,7 @@ function twitterClient () {
                                 // get oldest tweet
                                 max_id = tweets[tweets.length - 1].id - 1;
                                 //options = {};
-                                options.screen_name = 'BSI_UK';
+                                //options.screen_name = 'BSI_UK';
                                 options.count = 200;
                                 options.max_id = max_id;
                                 newest = tweets[0].created_at;

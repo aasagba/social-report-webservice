@@ -19,6 +19,17 @@ module.exports = function (app) {
             }
         },
 
+        /*******************************************************************
+         Dashboard Totals
+         *******************************************************************/
+        {
+            method: 'GET',
+            path: '/globalscores',
+            handler: function (req) {
+                req.reply().code(200);
+            }
+        },
+
         {
             method: 'GET',
             path: '/run/friends',
@@ -95,17 +106,38 @@ module.exports = function (app) {
          TIMELINE STATUSES SERVICE
 
          Get Posts for user
-         eg http://127.0.0.1:8000/
+         eg http://127.0.0.1:8000/posts/user/account/5846e35270e91934bb4bb3ab?channel=twitter&client=BSI_Brazil
          *******************************************************************/
         {
             method: 'GET',
-            path: '/user/account/{account}',
+            path: '/posts/user/account/{account}',
             handler: function (req) {
-                model.posts.getPostTimeline(req.query.channel, req.query.client, function (err, posts) {
+                model.posts.getPostTimeline(req.params.account, req.query.channel, req.query.client, function (err, posts) {
                     if (err) {
                         return req.reply().code(500);
                     } else {
                         req.reply(posts).code(200);
+                    }
+                });
+            }
+        },
+
+        /*******************************************************************
+         GET POSTS FROM DB BY ACCOUNT
+
+
+         eg http://127.0.0.1:8000/posts?account=5846e35270e91934bb4bb3ab
+         *******************************************************************/
+        {
+            method: 'GET',
+            path: '/posts',
+            handler: function (req) {
+                //console.log("req.query.account: " + req.query.account);
+                model.posts.getPosts(req.query.account, function (err, followers) {
+                    if (err) {
+                        return req.reply().code(500);
+                    } else {
+                        req.reply(followers).code(200);
                     }
                 });
             }

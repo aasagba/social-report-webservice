@@ -70,13 +70,22 @@ module.exports = function (app, callback) {
                                   if (err) {
                                       return req.reply().code(500);
                                   }
+
+                                   globalmodel.friends.processFriends(user._id, user.accountid, function (err, results) {
+                                       if (err) {
+                                           return req.reply().code(500);
+                                       }
+                                       globalmodel.posts.getPostTimeline(user._id, user.channel, user.accountid, function (err, results) {
+                                           if (err) {
+                                               return req.reply().code(500);
+                                           }
+                                       });
+                                   });
                                });
 
-                               globalmodel.friends.processFriends(user._id, user.accountid, function (err, results) {
-                                   if (err) {
-                                       return req.reply().code(500);
-                                   }
-                               });
+
+
+
                            });
 
 

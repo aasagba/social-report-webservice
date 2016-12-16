@@ -47,6 +47,14 @@ function socialClient () {
                 result = twitterClient.getFollowers(action, user);
                 resolve(result);
             });
+        },
+
+        getPostTimeline: function (channel, newaction, newoptions) {
+            return new Promise(function (resolve, reject) {
+                var result = twitterClient.getPostTimeline(channel, newaction, newoptions);
+                resolve(result);
+            });
+
         }
     }
 }

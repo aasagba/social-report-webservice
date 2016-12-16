@@ -34,6 +34,17 @@ module.exports = function (app, callback) {
                 });
             },
 
+            getAccount: function (client, accountid) {
+
+                collection.find({client: client, accountid: accountid}).toArray(function (err, result) {
+                   if (err) {
+                       console.log("Error: " + err);
+                       callback(err);
+                   }
+                    callback(null, result);
+                });
+            },
+
             // create users
             create: function (users, callback) {
 
